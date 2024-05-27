@@ -32,4 +32,51 @@ print(len(right_imgs))
 assert len(left_imgs) == len(right_imgs)
 ```
 - ```glob``` is used to find image paths with a specific prefix (L* for left, R* for right) and sort them to ensure proper image pair processing.
-- Make sure you have the same number of left and right images.
+- Make sure you have the same number of left and right images. If you got an assertion error check your images if there is blured image or partially covered chessboard. The assertion verifies that you have the same number of left and right images, which is crucial for stereo calibration.
+## Set Termination Criteria for Corner Refinement:
+```python
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-3)
+```
+The line ```criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-3)``` defines a set of termination criteria used by the cv2.cornerSubPix function in OpenCV. This function refines the initially detected chessboard corners in your images to provide more accurate sub-pixel locations.
+
+
+```python
+left_pts, right_pts = [], []
+img_size = None
+
+for left_img_path, right_img_path in zip(left_imgs, right_imgs):
+    left_img = cv2.imread(left_img_path, cv2.IMREAD_GRAYSCALE)
+    right_img = cv2.imread(right_img_path, cv2.IMREAD_GRAYSCALE)
+    if img_size is None:
+        img_size = (left_img.shape[1], left_img.shape[0])
+
+    # Detect chessboard corners
+    res_left, corners_left = cv2.findChessboardCorners(left_img, PATTERN_SIZE)
+    res_right, corners_right = cv2.findChessboardCorners(right_img, PATTERN_SIZE)
+
+    # Handle successful corner detection
+    if res_left:
+        corners_left = cv2.cornerSubPix(left_img, corners_left, (10, 10), (-1, -1), criteria)
+    else:
+        print("Failed to find chessboard corners in left image!")
+        print(left_img_path)
+
+    # Handle successful corner detection
+    if res_right:
+        corners_right = cv2.cornerSubPix(right_img, corners_right, (10, 10), (-1, -1), criteria)
+    else:
+        print("Failed to find chessboard corners in right image!")
+        print(right_img_path)
+
+    left_pts.append(corners_left)
+    right_pts.append(corners_right)
+
+```
+
+-This loop iterates through each image pair in the sorted lists ```left_imgs``` and ```right_imgs```.
+-It loads the left and right images as grayscale using ```cv2.imread``` (grayscale is often preferred for corner detection).
+-The loop keeps track of the image size (```img_size```) in case it's needed later.
+-The core part here is ```cv2.findChessboardCorners```. This function attempts to detect the chessboard pattern in each image using the specified ```PATTERN_SIZE```.
+-The if statements handle successful and unsuccessful corner detections. The successful case calls cv2.cornerSubPix to refine the detected corner positions for better accuracy.
+-Finally, the detected corners for each image pair (left and right) are appended to the ```left_pts``` and ```right_pts lists```, respectively.
+
