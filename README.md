@@ -1,7 +1,7 @@
 # Stereo-Camera-Calibration-with-OpenCV-Detailed-Guide-
 ## Prepare left right image of chase
 The initial steps involve preparing the left and right camera images with the chessboard pattern. the pattern should be clear and on a flat plane. For my case I used 9x6 chessboard
-![9x6 chessboard]([image_url](https://drive.google.com/file/d/1mAamNUuKqsBLCwcVdxYscN976ZnnQCSA/view?usp=drive_link))
+![9x6 chessboard]([image_url](Image/6_x_9_pattern_chessboard.png)
 ## Import Necessary Libraries:
 ```python
 import cv2
