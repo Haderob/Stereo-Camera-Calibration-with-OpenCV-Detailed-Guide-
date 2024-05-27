@@ -39,6 +39,7 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-3)
 ```
 The line ```criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-3)``` defines a set of termination criteria used by the cv2.cornerSubPix function in OpenCV. This function refines the initially detected chessboard corners in your images to provide more accurate sub-pixel locations.
 
+## Iterate Through Image Pairs:
 
 ```python
 left_pts, right_pts = [], []
@@ -80,3 +81,49 @@ for left_img_path, right_img_path in zip(left_imgs, right_imgs):
 -The if statements handle successful and unsuccessful corner detections. The successful case calls cv2.cornerSubPix to refine the detected corner positions for better accuracy.
 -Finally, the detected corners for each image pair (left and right) are appended to the ```left_pts``` and ```right_pts lists```, respectively.
 
+## Create Object Points (Pattern Points):
+
+```Python
+pattern_points = np.zeros((np.prod(PATTERN_SIZE), 3), np.float32)
+pattern_points[:, :2] = np.indices(PATTERN_SIZE).T.reshape(-1, 2)
+pattern_points = [pattern_points] * len(left_imgs)
+```
+-This code snippet creates the object points (also known as pattern points) used for stereo calibration.
+-pattern_points is a 3D NumPy array that will hold the coordinates of each corner point on the chessboard in the object space (usually world coordinates).
+
+## Perform Stereo Camera Calibration:
+```Python
+err, Kl, Dl, Kr, Dr, R, T, E, F = cv2.stereoCalibrate(
+    pattern_points, left_pts, right_pts, None, None, None, None, img_size, flags=0)
+```
+-This line calls the ```cv2.stereoCalibrate``` function, the core of the stereo calibration process.
+
+-The function returns a tuple containing various calibration parameters:
+```err```: Reprojection error (measure of how well the 3D points project back onto the image planes).
+```Kl```: Left camera matrix (intrinsic parameters).
+```Dl```: Left camera distortion coefficients.
+```Kr```: Right camera matrix (intrinsic parameters).
+```Dr```: Right camera distortion coefficients.
+```R```: Rotation matrix describing the relative orientation between the left and right cameras.
+```T```: Translation vector representing the relative position between the left and right cameras.
+```E```: Essential matrix (used for camera motion estimation).
+```F```: Fundamental matrix (used for epipolar geometry computation).
+
+##  Print Calibration Results:
+```Python
+print('Left camera:')
+print(Kl)
+print('Left camera distortion:')
+print(Dl)
+print('Right camera:')
+print(Kr)
+print('Right camera distortion:')
+print(Dr)
+print('Rotation matrix:')
+print(R)
+print('Translation:')
+print(T)
+```
+
+-These lines print the retrieved calibration parameters for informative purposes.
+-You can use these parameters for various applications like 3D reconstruction, depth estimation, and rectified stereo image generation.
